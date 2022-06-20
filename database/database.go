@@ -3,6 +3,7 @@ package database
 import (
 	"authorization/custom_models"
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -37,19 +38,26 @@ func (d *DB) InsertToken(token *custom_models.Token) (bool, error) {
 	coll := d.client.Database("authorization").Collection("session")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	_, err := coll.InsertOne(ctx, token)
+	filter := bson.M{"userid": token.UserId}
+	var result *custom_models.Token
+	err := coll.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("user is already logged in")
 	} else {
-		return true, nil
+		_, err := coll.InsertOne(ctx, token)
+		if err != nil {
+			return false, err
+		} else {
+			return true, nil
+		}
 	}
 }
 
-func (d *DB) FindOneAndDeleteToken(token string) (bool, error) {
+func (d *DB) FindOneAndDeleteTokenById(userid string) (bool, error) {
 	coll := d.client.Database("authorization").Collection("session")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	filter := bson.M{"token": token}
+	filter := bson.M{"userid": userid}
 	_, err := coll.DeleteOne(ctx, filter)
 	if err != nil {
 		return false, err
@@ -60,7 +68,7 @@ func (d *DB) FindOneAndDeleteToken(token string) (bool, error) {
 
 func (d *DB) IsTokenExists(token string) (bool, error) {
 	coll := d.client.Database("authorization").Collection("session")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	filter := bson.M{"token": token}
 	var res *custom_models.Token

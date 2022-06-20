@@ -36,10 +36,10 @@ func (u *Core) CreateJwt(id string) (string, error) {
 	}
 }
 
-func (u *Core) DeleteJwt(token string) (bool, error) {
+func (u *Core) DeleteJwt(userid string) (bool, error) {
 	db := database.Connect()
 	defer db.Disconnect()
-	return db.FindOneAndDeleteToken(token)
+	return db.FindOneAndDeleteTokenById(userid)
 }
 
 func (u *Core) ValidateJwt(token string) (string, error) {

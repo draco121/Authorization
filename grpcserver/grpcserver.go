@@ -24,7 +24,7 @@ func (s *Server) CreateJWT(ctx context.Context, in *authorization.Createjwtinput
 
 func (s *Server) DeleteJWT(ctx context.Context, in *authorization.Deletejwtinput) (*authorization.Deletejwtoutput, error) {
 	repo := core.Core{}
-	res, err := repo.DeleteJwt(in.Token)
+	res, err := repo.DeleteJwt(in.Userid)
 	if err != nil {
 		return nil, err
 	} else {
